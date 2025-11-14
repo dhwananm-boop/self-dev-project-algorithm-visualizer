@@ -1,0 +1,192 @@
+import pygame
+import math
+
+WIDTH = 800
+WIN = pygame.display.set_mode((WIDTH, WIDTH))
+pygame.display.set_caption("Pathfinding Algorithm Visualizer Using Custom Made DSA")
+
+COLOR_RED = (255, 0, 0)         # For End Node
+COLOR_GREEN = (0, 255, 0)       # For Start Node
+COLOR_BLUE = (0, 0, 255)        # For Path
+COLOR_YELLOW = (255, 255, 0)    # Not used yet
+COLOR_WHITE = (255, 255, 255)   # For empty Node
+COLOR_BLACK = (0, 0, 0)         # For Wall/Obstacle
+COLOR_GREY = (128, 128, 128)    # For Grid Lines
+COLOR_PURPLE = (128, 0, 128)    # For Frontier Node
+COLOR_ORANGE = (255, 165, 0)    # For Visited Node/Explored Node
+
+class Queue:
+    """
+    Simple FIFO Queue implementation using a list
+    Custom Data Structure for BFS Algorithm
+    """
+
+    def __init__(self):
+        self.items = []
+
+    def enqueue(self, item):
+        """
+        Add an item to the end of the queue
+        """
+        self.items.append(item)
+
+    def dequeue(self):
+        """
+        Removes and returns the item from the front of the queue
+        """
+        if not self.is_empty():
+            return self.items.pop(0)
+        return None
+    
+    def is_empty(self):
+        """
+        Returns True if the queue is empty.
+        """
+        return len(self.items) == 0
+    
+    def view_queue(self):
+        """
+        Returns the current items in the queue
+        """
+        return self.items
+    
+class Stack:
+    """
+    Simple LIFO Stack implementation using a list 
+    Custom Data Structure for DFS Algorithm
+    """
+    def __init__(self):
+        self.items = []
+
+    def push(self, item):
+        """
+        Add an item to the top of the stack
+        """
+        self.items.append(item)
+    
+    def pop(self):
+        """
+        Removes and returns the item from the top of the stack
+        """
+        if not self.is_empty():
+            return self.items.pop()
+        return None
+    
+    def is_empty(self):
+        """
+        Returns True if the stack is empty.
+        """
+        return len(self.items) == 0
+    
+    def peek(self):
+        """
+        Returns the top item of the stack without removing it
+        """
+        if not self.is_empty():
+            return self.items[-1]
+        return None
+    
+    def view_stack(self):
+        """
+        Returns the current items in the stack
+        """
+        return self.items
+    
+class PriorityQueue:
+    """
+    A Min-Heap implementation
+    Custom Data Structure for A*, UCS, and Greedy Best-First.
+    Stores items as (priority, item) tuples.
+    """
+    def __init__(self):
+        self.heap = []
+
+    def is_empty(self):
+        """
+        Returns True if the priority queue is empty.
+        """
+        return len(self.heap) == 0
+    
+    def push(self, priority, item):
+        """
+        Adds a new item to the heap and heaps up to maintain the 
+        min-heap property.
+        """
+        self.heap.append((priority, item)) # Add new element at the end
+        self._heapify_up(len(self.heap) - 1) # Heap up to correct position
+
+    def pop(self):
+        """
+        Removes and returns the item with the highest priority (lowest value).
+        Heaps down to maintain the min-heap property.
+        """
+        if self.is_empty():
+            return None
+        
+        # If only one element, just pop and return it
+        if len(self.heap) == 1:
+            return self.heap.pop()[1] # Returns the item only, not the priority
+
+        root_item = self.heap[0][1] # Store the root item
+
+        self.heap[0] = self.heap.pop() # Replace root with last element
+
+        self._heapify_down(0) # Heap down to correct position
+
+        return root_item
+    
+    def _heapify_up(self, index):
+        """
+        Moves an item at 'index' up the heap until it's in the 
+        correct spot meaning it's smaller than its chidren 
+        and larger than its parent.
+        """
+        parent_index = (index - 1) // 2
+
+        # While we are not at the root (index > 0) and
+        # our item has a lower priority than its parent
+        while index > 0 and self.heap[index][0] < self.heap[parent_index][0]:
+            # Swap the current item with its parent
+            self._swap(index, parent_index)
+
+            # Move up to the parent's position
+            index = parent_index
+            parent_index = (index - 1) // 2
+
+    def _heapify_down(self, index):
+        """
+        Moves an item at 'index' down the heap until it's in the
+        correct spot.
+        """
+        last_index = len(self.heap) - 1
+
+        while True:
+            left_child_index = 2 * index + 1
+            right_child_index = 2 * index + 2
+            smallest_child_index = index # Assume parent is smallest
+
+            # Check if left child exists and is smaller than parent
+            if (left_child_index <= last_index and
+                self.heap[left_child_index][0] < self.heap[smallest_child_index][0]):
+                smallest_child_index = left_child_index
+
+            # Check if right child exists and is smaller than current smallest
+            if (right_child_index <= last_index and
+                self.heap[right_child_index][0] < self.heap[smallest_child_index][0]):
+                smallest_child_index = right_child_index
+            
+            # If the smallest child is not the parent, swap them
+            if smallest_child_index != index:
+                self._swap(index, smallest_child_index)
+                # Move down to the child's position
+                index = smallest_child_index
+            else:
+                # We are in the correct spot
+                break
+    
+    def _swap(self, i, j):
+        """
+        Helper function to swap two items in the heap.
+        """
+        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
+

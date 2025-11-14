@@ -274,4 +274,63 @@ class Node:
         if self.col > 0 and not grid[self.row][self.col - 1].is_wall():
             self.neighbors.append(grid[self.row][self.col - 1])
 
+# Helper Functions 
 
+def heuristic(p1, p2):
+    """
+    Heuristic function Manhattan distance
+    """
+    x1, y1 = p1
+    x2, y2 = p2
+    return abs(x1 - x2) + abs(y1 - y2)
+
+def make_grid(rows, width):
+    grid = []
+    gap = width // rows
+
+    for i in range(rows):
+        grid.append([])
+        for j in range(rows):
+            node = Node(i, j, gap, rows)
+            grid[i].append(node)
+    return grid
+
+def draw_grid(win, rows, width):
+    gap = width // rows
+    for i in range(rows):
+        pygame.draw.line(win, COLOR_GREY, (0, i * gap), (width, i * gap))
+        for j in range(rows):
+            pygame.draw.line(win, COLOR_GREY, (j * gap, 0), (j * gap, width))
+
+def draw(win, grid, rows, width):
+    win.fill(COLOR_WHITE)
+
+    for row in grid:
+        for node in row:
+            node.draw(win)
+    
+    draw_grid(win, rows, width)
+    pygame.display.update()
+
+def get_clicked_position(pos, rows, width):
+    gap = width // rows
+    y, x = pos
+
+    row = y // gap
+    col = x // gap
+
+    return row, col
+
+def reconstruct_path(end_node, draw_callback):
+    """
+    Backtracks from the end_node via its parent
+    to draw the final path.
+    """
+    current = end_node
+    while current.parent:
+        current = current.parent
+
+        if not current.is_start(): # To avoid changing start node color
+            current.make_path()
+        draw_callback()
+        pygame.time.delay(40) # Slow down for visualization

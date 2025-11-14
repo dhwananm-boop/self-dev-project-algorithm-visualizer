@@ -190,3 +190,90 @@ class PriorityQueue:
         """
         self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
 
+
+class Node:
+    def __init__(self, row, col, width, total_rows):
+        self.row = row
+        self.col = col
+        self.x = row * width
+        self.y = col * width
+        self.color = COLOR_WHITE
+        self.neighbors = []
+        self.width = width
+        self.total_rows = total_rows
+        self.parent = None # For path reconstruction
+
+        # For A* and UCS
+        self.g_cost = float("inf")  # Cost from start node
+        self.h_cost = float("inf")  # Heuristic cost to end node
+        self.f_cost = float("inf")  # Total cost (g + h)
+
+    def get_pos(self):
+        return self.row, self.col
+    
+    def is_closed(self):
+        return self.color == COLOR_ORANGE
+    
+    def is_open(self):
+        return self.color == COLOR_PURPLE
+    
+    def is_wall(self):
+        return self.color == COLOR_BLACK
+    
+    def is_start(self):
+        return self.color == COLOR_GREEN
+    
+    def is_end(self):
+        return self.color == COLOR_RED
+    
+    def reset(self):
+        self.color = COLOR_WHITE
+        self.parent = None
+        self.g_cost = float("inf")
+        self.h_cost = float("inf")
+        self.f_cost = float("inf")
+    
+    def make_start(self):
+        self.color = COLOR_GREEN
+    
+    def make_closed(self):
+        self.color = COLOR_ORANGE
+    
+    def make_open(self):
+        self.color = COLOR_PURPLE
+    
+    def make_wall(self):
+        self.color = COLOR_BLACK
+    
+    def make_end(self):
+        self.color = COLOR_RED
+    
+    def make_path(self):
+        self.color = COLOR_BLUE
+    
+    def draw(self, win):
+        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
+    
+    def update_neighbors(self, grid):
+        """
+        Finds all valid, non-wall neighbors (up, down, left, right)
+        """
+        self.neighbors = []
+        # Down
+        if self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_wall():
+            self.neighbors.append(grid[self.row + 1][self.col])
+        
+        # Up
+        if self.row > 0 and not grid[self.row - 1][self.col].is_wall():
+            self.neighbors.append(grid[self.row - 1][self.col])
+
+        # Right
+        if self.col < self.total_rows - 1 and not grid[self.row][self.col + 1].is_wall():
+            self.neighbors.append(grid[self.row][self.col + 1])
+        
+        # Left
+        if self.col > 0 and not grid[self.row][self.col - 1].is_wall():
+            self.neighbors.append(grid[self.row][self.col - 1])
+    
+    
+

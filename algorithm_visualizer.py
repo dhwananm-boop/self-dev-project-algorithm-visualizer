@@ -188,8 +188,7 @@ class PriorityQueue:
         """
         Helper function to swap two items in the heap.
         """
-        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
-
+        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]    
 
 class Node:
     def __init__(self, row, col, width, total_rows):
@@ -274,6 +273,5 @@ class Node:
         # Left
         if self.col > 0 and not grid[self.row][self.col - 1].is_wall():
             self.neighbors.append(grid[self.row][self.col - 1])
-    
-    
+
 

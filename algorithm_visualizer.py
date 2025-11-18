@@ -2,7 +2,7 @@ import pygame
 import math
 import sys
 
-WIDTH = 800
+WIDTH = 600
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("Pathfinding Algorithm Visualizer Using Custom Made DSA")
 

@@ -101,6 +101,7 @@ class PriorityQueue:
     """
     def __init__(self):
         self.heap = []
+        self.count = 0 # Unique tie-breaker counter
 
     def is_empty(self):
         """
@@ -113,7 +114,10 @@ class PriorityQueue:
         Adds a new item to the heap and heaps up to maintain the 
         min-heap property.
         """
-        self.heap.append((priority, item)) # Add new element at the end
+        self.count += 1
+
+        entry = (priority, self.count, item)
+        self.heap.append(entry) # Add new element at the end
         self._heapify_up(len(self.heap) - 1) # Heap up to correct position
 
     def pop(self):
@@ -126,9 +130,9 @@ class PriorityQueue:
         
         # If only one element, just pop and return it
         if len(self.heap) == 1:
-            return self.heap.pop()[1] # Returns the item only, not the priority
+            return self.heap.pop()[2] # Returns the item only, not the priority
 
-        root_item = self.heap[0][1] # Store the root item
+        root_item = self.heap[0][2] # Store the root item
 
         self.heap[0] = self.heap.pop() # Replace root with last element
 
@@ -432,5 +436,68 @@ def algorithm_dfs(draw_callback, grid, start, goal):
     return False # Path not found
 
 
+def algorithm_a_star(draw_callback, grid, start, goal):
+    """
+    A* Algorithm
+    Uses Custom Priority Queue Data Structure
+    """
 
+    frontier = PriorityQueue()
 
+    # Push (f_cost, node) to the priority queue.
+
+    # Start node initialization
+    start.g_cost = 0
+    start.h_cost = heuristic(start.get_pos(), goal.get_pos())
+    start.f_cost = start.g_cost + start.h_cost
+
+    frontier.push(start.f_cost, start)
+
+    explored_set = {start}
+
+    while not frontier.is_empty():
+        # Check for quit events to avoid freezing the program
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+       
+        # Get the node with the lowest f_cost
+        current_node = frontier.pop()
+
+        if current_node in explored_set:
+            explored_set.remove(current_node)
+        else:
+            continue # Skip if already explored
+
+        # Check for goal
+        if current_node == goal:
+            reconstruct_path(goal, draw_callback)
+            goal.make_end() # Redraw the end node
+            start.make_start() # Redraw the start node
+            return True
+        
+        # Explore neighbors
+        for neighbor in current_node.neighbors:
+            # Calculate g_cost
+            temp_g_cost = current_node.g_cost + 1
+
+            # If this path to neighbor is better than any other
+            if temp_g_cost < neighbor.g_cost:
+                # Update neighbor's values
+                neighbor.parent = current_node
+                neighbor.g_cost = temp_g_cost
+                neighbor.h_cost = heuristic(neighbor.get_pos(), goal.get_pos())
+                neighbor.f_cost = neighbor.g_cost + neighbor.h_cost
+
+                # Add to frontier if not there
+                if neighbor not in explored_set:
+                    frontier.push(neighbor.f_cost, neighbor)
+                    explored_set.add(neighbor)
+                    neighbor.make_open() # Mark as in frontier
+        
+        draw_callback() # Update visualization
+
+        if current_node != start:
+            current_node.make_closed() # Mark as explored
+    return False # Path not found    

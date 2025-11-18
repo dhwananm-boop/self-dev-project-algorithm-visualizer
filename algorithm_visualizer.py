@@ -1,5 +1,6 @@
 import pygame
 import math
+import sys
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
@@ -334,3 +335,53 @@ def reconstruct_path(end_node, draw_callback):
             current.make_path()
         draw_callback()
         pygame.time.delay(40) # Slow down for visualization
+
+
+def algorithm_bfs(draw_callback, grid, start, goal):
+    """
+    Breadth-First Search Algorithm
+    Uses Custom Queue Data Structure
+    """
+    frontier = Queue() # Create the frontier queue
+    frontier.enqueue(start) # Add the start node
+
+    explored_set = {start} # To keep track of explored nodes
+
+    while not frontier.is_empty():
+        # Check for quit events to avoid freezing the program
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+        current_node = frontier.dequeue() # Get the next node from the front of the queue
+
+        # Check if current_node is the goal node
+        if current_node == goal:
+            goal.parent = current_node.parent # Link the goal node
+            reconstruct_path(goal, draw_callback)
+            goal.make_end() # Redraw the end node
+            start.make_start() # Redraw the start node
+            return True # Path found
+        
+        # Explore neighbors
+        for neighbor in current_node.neighbors:
+            if neighbor not in explored_set:
+                # Add neighbor to the explored set and frontier
+                explored_set.add(neighbor)
+                neighbor.parent = current_node # Set parent for path reconstruction
+                frontier.enqueue(neighbor)
+                neighbor.make_open() # Mark as in frontier
+
+        draw_callback() # Update visualization
+
+        # Mark current node as explored
+        if current_node != start:
+            current_node.make_closed()
+        
+    return False # Path not found
+
+
+
+
+

@@ -382,6 +382,55 @@ def algorithm_bfs(draw_callback, grid, start, goal):
     return False # Path not found
 
 
+def algorithm_dfs(draw_callback, grid, start, goal):
+    """
+    Depth-First Search Algorithm
+    Uses Custom Stack Data Structure
+    """
+    
+    frontier = Stack() 
+    frontier.push(start)
+
+    # Add to visited either while popping from stack
+    # OR when pushing to stack... Same thing
+    explored_set = set()
+
+    while not frontier.is_empty():
+        # Check for quit events to avoid freezing the program
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+        current_node = frontier.pop()
+
+        # Check if current_node is the goal node
+        if current_node == goal:
+            goal.parent = current_node.parent # Link the goal node
+            reconstruct_path(goal, draw_callback)
+            goal.make_end() # Redraw the end node
+            start.make_start() # Redraw the start node
+            return True # Path found
+        
+        # If we haven't visited this node yet
+        if current_node not in explored_set:
+            explored_set.add(current_node) # Mark as visited
+
+            if current_node != start:
+                current_node.make_closed() # Mark as explored
+
+            
+            # Add the neighbors to the stack
+            for neighbor in current_node.neighbors:
+                if neighbor not in explored_set:
+                    neighbor.parent = current_node
+                    frontier.push(neighbor)
+                    neighbor.make_open() # Mark as in frontier
+        
+        draw_callback() # Update visualization
+    
+    return False # Path not found
+
 
 
 

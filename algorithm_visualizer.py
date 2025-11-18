@@ -500,4 +500,102 @@ def algorithm_a_star(draw_callback, grid, start, goal):
 
         if current_node != start:
             current_node.make_closed() # Mark as explored
-    return False # Path not found    
+    return False # Path not found
+
+def main(win, width):
+    ROWS = 50
+    grid = make_grid(ROWS, width)
+    start_node = None
+    end_node = None
+    run = True
+    started = False
+
+    font = pygame.font.SysFont('Arial', 18)
+    instructions = [
+        "Left Click: Draw Start (Green), End (Red), and Walls (Black)",
+        "Right Click: Remove Node",
+        "---",
+        "B: Run BFS  |  D: Run DFS  | A: Run A* Search",
+        "C: Clear Grid"
+    ]
+
+    new_height = width + (len(instructions) * 20) + 10
+    win = pygame.display.set_mode((width, new_height))
+
+    while run:
+        draw(win, grid, ROWS, width)
+
+        panel_y = width 
+        pygame.draw.rect(win, COLOR_BLACK, (0, panel_y, width, new_height - width))
+        for i, line in enumerate(instructions):
+            text = font.render(line, True, COLOR_WHITE)
+            win.blit(text, (10, panel_y + 5 + i * 20))
+        pygame.display.update()
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                run = False
+
+            if started:
+                continue
+
+            if pygame.mouse.get_pressed()[0]: # Left Click
+                pos = pygame.mouse.get_pos()
+                if pos[1] < width:
+                    row, col = get_clicked_position(pos, ROWS, width)
+                    node = grid[row][col]
+
+                    if not start_node and node != end_node:
+                        start_node = node
+                        start_node.make_start()
+                    
+                    elif not end_node and node != end_node:
+                        end_node = node
+                        end_node.make_end()
+                    
+                    elif node != end_node and node != start_node:
+                        node.make_wall()
+            
+            elif pygame.mouse.get_pressed()[2]: # Right Click
+                pos = pygame.mouse.get_pos()
+                if pos[1] < width:
+                    row, col  = get_clicked_position(pos, ROWS, width)
+                    node = grid[row][col]
+                    node.reset()
+                    if node == start_node:
+                        start_node = None
+                    elif node == end_node:
+                        end_node = None
+            
+            if e.type == pygame.KEYDOWN:
+                if (e.key == pygame.K_b or e.key == pygame.K_d or e.key == pygame.K_a) and start_node and end_node:
+                    started = True
+                    for row in grid:
+                        for node in row:
+                            node.update_neighbors(grid)
+                            node.g_cost = float("inf")
+                            node.h_cost = float("inf")
+                            node.f_cost = float("inf")
+                    
+                    draw_callback = lambda: draw(win, grid, ROWS, width)
+
+                    if e.key == pygame.K_b:
+                        algorithm_bfs(draw_callback, grid, start_node, end_node)
+                    elif e.key == pygame.K_d:
+                        algorithm_dfs(draw_callback, grid, start_node, end_node)
+                    elif e.key == pygame.K_a:
+                        algorithm_a_star(draw_callback, grid, start_node, end_node)
+                    
+                    started = False
+
+                if e.key == pygame.K_c:
+                    start_node = None
+                    end_node = None
+                    grid = make_grid(ROWS, width)
+                    started = False
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    pygame.init()
+    main(WIN, WIDTH)
